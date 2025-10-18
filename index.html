@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Task Manager - Drag & Drop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-left">
+                <i class="fas fa-tasks header-icon"></i>
+                <h1>Kanban Task Manager</h1>
+            </div>
+            <div class="header-stats">
+                <span class="stat-badge" id="totalTasks">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="taskCount">0</span> Tasks
+                </span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openTaskModal()">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+                <button class="btn btn-danger" onclick="clearAllTasks()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Kanban Board -->
+    <main class="kanban-board">
+        <!-- To Do Column -->
+        <div class="kanban-column" id="todo-column" data-status="todo">
+            <div class="column-header">
+                <div class="column-info">
+                    <div class="column-indicator" style="background-color: #ef4444;"></div>
+                    <h2 class="column-title">To Do</h2>
+                    <span class="task-count-badge" id="todo-count">0</span>
+                </div>
+                <button class="add-task-btn" onclick="openTaskModal('todo')" title="Add task">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="tasks-container" 
+                 id="todo-tasks" 
+                 ondrop="drop(event)" 
+                 ondragover="allowDrop(event)"
+                 data-status="todo">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No tasks yet</p>
+                    <small>Drag tasks here or click + to add</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="kanban-column" id="inprogress-column" data-status="inprogress">
+            <div class="column-header">
+                <div class="column-info">
+                    <div class="column-indicator" style="background-color: #f59e0b;"></div>
+                    <h2 class="column-title">In Progress</h2>
+                    <span class="task-count-badge" id="inprogress-count">0</span>
+                </div>
+                <button class="add-task-btn" onclick="openTaskModal('inprogress')" title="Add task">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="tasks-container" 
+                 id="inprogress-tasks" 
+                 ondrop="drop(event)" 
+                 ondragover="allowDrop(event)"
+                 data-status="inprogress">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No tasks yet</p>
+                    <small>Drag tasks here or click + to add</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="kanban-column" id="done-column" data-status="done">
+            <div class="column-header">
+                <div class="column-info">
+                    <div class="column-indicator" style="background-color: #10b981;"></div>
+                    <h2 class="column-title">Done</h2>
+                    <span class="task-count-badge" id="done-count">0</span>
+                </div>
+                <button class="add-task-btn" onclick="openTaskModal('done')" title="Add task">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="tasks-container" 
+                 id="done-tasks" 
+                 ondrop="drop(event)" 
+                 ondragover="allowDrop(event)"
+                 data-status="done">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No tasks yet</p>
+                    <small>Drag tasks here or click + to add</small>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-edit"></i>
+                    <span>Create New Task</span>
+                </h2>
+                <button class="close-btn" onclick="closeTaskModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">
+                        <i class="fas fa-heading"></i> Task Title *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="taskTitle" 
+                        placeholder="Enter task title..." 
+                        required
+                        maxlength="100">
+                    <span class="error-message" id="titleError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">
+                        <i class="fas fa-align-left"></i> Description *
+                    </label>
+                    <textarea 
+                        id="taskDescription" 
+                        placeholder="Enter task description..." 
+                        rows="4"
+                        required
+                        maxlength="500"></textarea>
+                    <span class="error-message" id="descError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskPriority">
+                        <i class="fas fa-flag"></i> Priority
+                    </label>
+                    <select id="taskPriority" required>
+                        <option value="low">🟢 Low</option>
+                        <option value="medium" selected>🟡 Medium</option>
+                        <option value="high">🔴 High</option>
+                    </select>
+                </div>
+
+                <input type="hidden" id="taskId">
+                <input type="hidden" id="taskStatus">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> <span id="submitBtnText">Create Task</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <p>Loading tasks...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
